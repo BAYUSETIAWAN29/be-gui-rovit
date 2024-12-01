@@ -3,26 +3,53 @@ import joblib
 import pandas as pd
 import heartpy as hp
 import numpy as np
+import tensorflow as tf
+from sklearn.preprocessing import StandardScaler
 
 app = Flask(__name__)
 scaler = joblib.load('scaler.pkl')
-systole_model = joblib.load('systole_model.pkl')
-diastole_model = joblib.load('diastole_model.pkl')
+# Load the trained model
+model = tf.keras.models.load_model('blood_pressure_and_respiratory_prediction_model.h5')
+#systole_model = joblib.load('systole_model.pkl')
+#diastole_model = joblib.load('diastole_model.pkl')
 
-@app.route('/', methods=['POST'])
-def process_data():
+# Load scaler parameters (you need to save this during your training process and load here)
+data = pd.read_csv('/content/data-extraction-r-normalized.csv')
+scaler = StandardScaler()
+scaler.fit(data[['bpm', 'ibi', 'sdnn', 'sdsd', 'rmssd', 'age', 'weight']])
+
+# Define prediction route
+@app.route('/predict', methods=['POST'])
+def predict():
   try:
-    data = request.get_json()
+    input_data = request.get_json()
     
-    # feature extraction
-    _, m = hp.process(np.array(data['ppg']), sample_rate = 100.0)
-  
-    data.pop("ppg")
-    data = scaler.transform(pd.DataFrame([{**data, **m}]))
+    # Validate input
+    required_keys = ['bpm', 'ibi', 'sdnn', 'sdsd', 'rmssd', 'age', 'weight']
+    if not all(key in input_data for key in required_keys):
+        return jsonify({'error': f'Missing required keys. Required keys: {required_keys}'}), 400
 
-    estimated_systole = systole_model.predict(data)
-    estimated_diastole = diastole_model.predict(data)
+    # Extract and preprocess input features
+    input_features = np.array([
+        input_data['bpm'],
+        input_data['ibi'],
+        input_data['sdnn'],
+        input_data['sdsd'],
+        input_data['rmssd'],
+        input_data['age'],
+        input_data['weight']
+    ]).reshape(1, -1)
+    input_scaled = scaler.transform(input_features)
 
-    return jsonify({'status': 'success', 'message': 'Data berhasil diproses', 'estimated_systole': estimated_systole[0], 'estimated_diastole' : estimated_diastole[0], **m})
+    # Make predictions
+    prediction = model.predict(input_scaled)
+    systole, diastole, respiratory_rate = prediction[0]
+
+    # Return predictions as JSON
+    return jsonify({
+        'predicted_systole': float(systole),
+        'predicted_diastole': float(diastole),
+        'predicted_respiratory_rate': float(respiratory_rate)
+    })
   except Exception as e:
     return jsonify({'status': 'error','message': str(e)})
