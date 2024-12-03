@@ -17,7 +17,7 @@ data = pd.read_csv('data-extraction-r-normalized.csv')
 scaler = StandardScaler()
 scaler.fit(data[['bpm', 'ibi', 'sdnn', 'sdsd', 'rmssd', 'age', 'weight']])
 
-@app.route('/api/predict', methods=['POST'])
+@app.route('/', methods=['POST'])
 def predict():
   try:
     input_data = request.get_json()
