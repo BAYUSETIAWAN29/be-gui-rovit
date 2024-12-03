@@ -15,7 +15,7 @@ model = tf.keras.models.load_model('blood_pressure_and_respiratory_prediction_mo
 # Load scaler parameters (you need to save this during your training process and load here)
 data = pd.read_csv('data-extraction-r-normalized.csv')
 scaler = StandardScaler()
-scaler.fit(data[['bpm', 'ibi', 'sdnn', 'rmssd', 'hr_mad', 'age', 'weight']])
+scaler.fit(data[['bpm', 'ibi', 'sdnn', 'sdsd', 'rmssd', 'age', 'weight']])
 
 @app.route('/', methods=['POST'])
 def predict():
@@ -23,7 +23,7 @@ def predict():
     input_data = request.get_json()
     
     # Validate input
-    required_keys = ['bpm', 'ibi', 'sdnn', 'rmssd', 'hr_mad', 'age', 'weight']
+    required_keys = ['bpm', 'ibi', 'sdnn', 'sdsd', 'rmssd', 'age', 'weight']
     if not all(key in input_data for key in required_keys):
         return jsonify({'error': f'Missing required keys. Required keys: {required_keys}'}), 400
 
@@ -32,8 +32,8 @@ def predict():
         input_data['bpm'],
         input_data['ibi'],
         input_data['sdnn'],
+        input_data['sdsd'],
         input_data['rmssd'],
-        input_data['hr_mad'],
         input_data['age'],
         input_data['weight']
     ]).reshape(1, -1)
