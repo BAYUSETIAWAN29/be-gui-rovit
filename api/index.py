@@ -23,32 +23,32 @@ def predict():
     input_data = request.get_json()
     
     # Validate input
-        required_keys = ['bpm', 'ibi', 'sdnn', 'sdsd', 'rmssd', 'age', 'weight']
-        if not all(key in input_data for key in required_keys):
-            return jsonify({'error': f'Missing required keys. Required keys: {required_keys}'}), 400
+    required_keys = ['bpm', 'ibi', 'sdnn', 'sdsd', 'rmssd', 'age', 'weight']
+    if not all(key in input_data for key in required_keys):
+        return jsonify({'error': f'Missing required keys. Required keys: {required_keys}'}), 400
 
-        # Extract and preprocess input features
-        input_features = np.array([
-            input_data['bpm'],
-            input_data['ibi'],
-            input_data['sdnn'],
-            input_data['sdsd'],
-            input_data['rmssd'],
-            input_data['age'],
-            input_data['weight']
-        ]).reshape(1, -1)
-        input_scaled = scaler.transform(input_features)
+    # Extract and preprocess input features
+    input_features = np.array([
+        input_data['bpm'],
+        input_data['ibi'],
+        input_data['sdnn'],
+        input_data['sdsd'],
+        input_data['rmssd'],
+        input_data['age'],
+        input_data['weight']
+    ]).reshape(1, -1)
+    input_scaled = scaler.transform(input_features)
 
-        # Make predictions
-        prediction = model.predict(input_scaled)
-        systole, diastole, respiratory_rate = prediction[0]
+    # Make predictions
+    prediction = model.predict(input_scaled)
+    systole, diastole, respiratory_rate = prediction[0]
 
-        # Return predictions as JSON
-        return jsonify({
-            'predicted_systole': float(systole),
-            'predicted_diastole': float(diastole),
-            'predicted_respiratory_rate': float(respiratory_rate)
-        })
+    # Return predictions as JSON
+    return jsonify({
+        'predicted_systole': float(systole),
+        'predicted_diastole': float(diastole),
+        'predicted_respiratory_rate': float(respiratory_rate)
+    })
     
   except Exception as e:
     return jsonify({'status': 'error','message': str(e)}), 500
