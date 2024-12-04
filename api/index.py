@@ -48,11 +48,13 @@ def predict():
 
         # Return predictions as JSON
         return jsonify({
-            'predicted_systole': float(systole),
-            'predicted_diastole': float(diastole),
-            'predicted_respiratory_rate': float(respiratory_rate)
+            'status': 'success',
+            'message': 'Data berhasil diproses',
+            'estimated_systole': float(systole),
+            'estimated_diastole': float(diastole),
+            'estimated_respiratory_rate': float(respiratory_rate),
+            **m
         })
-
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
