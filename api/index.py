@@ -3,6 +3,7 @@ import numpy as np
 import tensorflow as tf
 from sklearn.preprocessing import StandardScaler
 import pandas as pd
+import heartpy as hp
 
 # Initialize Flask app
 app = Flask(__name__)
